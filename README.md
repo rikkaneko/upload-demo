@@ -28,6 +28,8 @@ $ curl -X POST 'http://localhost:8881/add_submission?user_id=1000&task_id=1'
 
 This `upload_url` can be used to upload from the client browser directly.
 
+_Remember to setup the CORS rules for the storage service, otherwise the request will be blocked by the browser_
+
 ## Upload the file form client
 
 ```bash

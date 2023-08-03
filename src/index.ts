@@ -1,4 +1,5 @@
 import express from 'express';
+import cors from 'cors';
 import config from './config.js';
 import { v4 as uuidv4 } from 'uuid';
 import {
@@ -48,9 +49,12 @@ async function check_file_exist(filename: string): Promise<boolean> {
 
 const app = express();
 
+// Disable CORS
+app.use(cors());
+
 app.post('/add_submission', async (req, res) => {
   if (!['user_id', 'task_id'].every((key) => Object.hasOwn(req.query, key))) {
-    res.json({
+    res.status(400).json({
       status: 'error',
       message: 'Requires both User ID and Task ID fields.',
     });
@@ -97,7 +101,7 @@ app.post('/add_submission', async (req, res) => {
 
 app.post('/done_submission', async (req, res) => {
   if (!Object.hasOwn(req.query, 'file_id')) {
-    res.json({
+    res.status(400).json({
       status: 'error',
       message: 'Missing or invalid file_id parameter',
     });
@@ -108,7 +112,7 @@ app.post('/done_submission', async (req, res) => {
 
   // Check whether file exist in the database
   if (!submission.has(file_id)) {
-    res.json({
+    res.status(400).json({
       status: 'error',
       message: 'Invalid file_id parameter',
     });
@@ -118,7 +122,7 @@ app.post('/done_submission', async (req, res) => {
 
   // Check if the file exist in the bucket
   if (!(await check_file_exist(file_id))) {
-    res.json({
+    res.status(400).json({
       status: 'error',
       message: `Submission ${file_id} has not finished uploading`,
     });
@@ -146,7 +150,7 @@ app.get('/list_task', (req, res) => {
 
 app.get('/get_download_url', async (req, res) => {
   if (!Object.hasOwn(req.query, 'file_id')) {
-    res.json({
+    res.status(400).json({
       status: 'error',
       message: 'Missing or invalid file_id parameter',
     });
@@ -156,7 +160,7 @@ app.get('/get_download_url', async (req, res) => {
   const file_id = req.query.file_id as string;
   // Check whether file exist in the database
   // if (!submission.has(file_id)) {
-  //   res.json({
+  //   res.status(400).json({
   //     status: 'error',
   //     message: 'Invalid file_id parameter',
   //   });
@@ -165,7 +169,7 @@ app.get('/get_download_url', async (req, res) => {
 
   // Check if the file exist in the bucket
   if (!(await check_file_exist(file_id))) {
-    res.json({
+    res.status(404).json({
       status: 'error',
       message: `Submission ${file_id} does not exist`,
     });
@@ -192,7 +196,7 @@ app.get('/', (_, res) => {
 });
 
 app.get('*', (req, res) => {
-  res.json({
+  res.status(400).json({
     status: 'error',
     message: `\`${req.path}\` does not found.`,
   });
